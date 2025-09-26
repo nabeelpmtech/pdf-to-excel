@@ -13,6 +13,7 @@ import tabula
 import os
 from .forms import UploadPDFForm
 from django.conf import settings
+from django.shortcuts import render,redirect
 
 def upload_view(request):
     if request.method == 'POST':
@@ -34,9 +35,26 @@ def upload_view(request):
                     table.to_excel(writer, sheet_name=f'Table{idx+1}', index=False)
 
             # Provide download link
-            return HttpResponse(f"Excel file created: <a href='/media/{os.path.basename(excel_file)}'>Download</a>")
+            #return HttpResponse(f"Excel file created: <a href='/media/{os.path.basename(excel_file)}'>Download</a>")
+            file_name = os.path.basename(excel_file)
+            return redirect(f"/result/?file_name={file_name}")
 
     else:
         form = UploadPDFForm()
 
     return render(request, 'converter/upload.html', {'form': form})
+
+def convert_pdf(request):
+    # Get the file_name from the query string
+    file_name = request.GET.get('file_name')
+
+    # Build the file URL for the template
+    file_url = f"/media/{file_name}" if file_name else None
+
+    return render(request, "converter/result.html", {
+        "file_url": file_url
+    })
+
+
+
+
